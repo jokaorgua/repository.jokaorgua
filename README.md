@@ -1,7 +1,7 @@
 Seasonvar.RU
 ============
 
-Plex media plugin for http://www.seasonvar.ru
+Kodi media plugin for http://www.seasonvar.ru
 
 Installation
 ============
