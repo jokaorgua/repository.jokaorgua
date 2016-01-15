@@ -1,0 +1,370 @@
+# -*- coding: utf8 -*-
+import json
+import xbmcaddon
+import xbmcgui
+import xbmcplugin
+import os
+import sys
+import urllib2
+import urllib
+import xbmc
+import re
+
+API_URL = "http://api.seasonvar.ru/"
+PREFIX = "/video/seasonvarserials"
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36';
+TIMEOUT = 30
+
+def L(key):
+
+    data = {
+        "Title": "Seasonvar.RU",
+        "ListSerials": "List Serials",
+        "LatestSerials": "Latest Serials",
+        "SeasonTitle": "Season",
+        "ABCSelect_EN": "English",
+        "ABCSelect_RU": "Russian",
+        "MissingAPIKeyTitle": "Error",
+        "MissingAPIKeyMessage": "Missing API Key. Open Settings and input a valid key. Next goto website and activate your key.",
+        "Search": "Search",
+        "SearchPrompt": "Search for the serial?",
+        "EmptyResultTitle": "Empty result",
+        "EmptyResultMessage": "Nothing has been found. Please try again",
+        "AddBookmarkTitle": "Add to bookmark list.",
+        "AddBookmarkMessage": " can be added to you bookmarks to make it easier to find later.",
+        "BookmarkList": "Bookmark List",
+        "BookmarkListAddedMessage": "This show has been added to your bookmarks",
+        "BookmarkListClearTitle": "Clear ALL",
+        "BookmarkListClearMessage": "CAUTION! This will clear your entire bookmark list!",
+        "BookmarkListClearedMessage": "Your bookmark list has been cleared.",
+        "UnauthorizedTitle": "Access Denied",
+        "UnauthorizedMessage": "Unauthorized user"
+    }
+    if data.has_key(key):
+        return data[key]
+
+    return key
+
+NAME = L('Title')
+LATEST_SERIALS = L('LatestSerials')
+LIST_SERIALS = L('ListSerials')
+SEASON_TITLE = L('SeasonTitle')
+ABC_SELECT_EN = L('ABCSelect_EN')
+ABC_SELECT_RU = L('ABCSelect_RU')
+SEARCH = L('Search')
+SEARCH_PROMPT = L('SearchPrompt')
+EMPTY_RESULT_TITLE = L('EmptyResultTitle')
+EMPTY_RESULT_MESSAGE = L('EmptyResultMessage')
+
+ADD_BOOKMARK_TITLE = L('AddBookmarkTitle')
+ADD_BOOKMARK_MESSAGE = L('AddBookmarkMessage')
+
+BOOKMARK = L('BookmarkList')
+BOOKMARK_ADDED_MESSAGE = L('BookmarkListAddedMessage')
+BOOKMARK_CLEAR_TITLE = L('BookmarkListClearTitle')
+BOOKMARK_CLEAR_MESSAGE = L('BookmarkListClearMessage')
+BOOKMARK_CLEARED_MESSAGE = L('BookmarkListClearedMessage')
+
+CLEAR_BOOKMARK = L('ClearBookmark')
+
+MISSING_API_KEY_TITLE = L('MissingAPIKeyTitle')
+MISSING_API_KEY_MESSAGE = L('MissingAPIKeyMessage')
+UNAUTHORIZED_TITLE = L('UnauthorizedTitle')
+UNAUTHORIZED_MESSAGE = L('UnauthorizedMessage')
+
+ART = 'art-default.jpg'
+
+ICON_DEFAULT = 'icon-default.png'
+ICON_RESUME = 'icon-resume.png'
+ICON_LATEST = 'icon-latest.png'
+ICON_COVER = 'icon-cover'
+ICON_SEARCH = 'icon-search.png'
+ICON_RU = 'icon-ru.png'
+ICON_EN = 'icon-en.png'
+ICON_BOOKMARKS = 'icon-bookmark.png'
+ICON_ADD_BOOKMARK = 'icon-bookmark.png'
+ICON_BOOKMARKS_CLEAR = 'icon-clear.png'
+
+PLUGIN_HANDLE = int(sys.argv[1])
+####################################################################################################
+# Start and main menu
+####################################################################################################
+ADDON = xbmcaddon.Addon(id='plugin.video.seasonvar.ru')
+xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+API_KEY = ADDON.getSetting('API_KEY')
+#icon = xbmc.translatePath(os.path.join(Addon.getAddonInfo('path'),'icon.png'))
+
+def get_params():
+    param=[]
+    paramstring=sys.argv[2]
+    if len(paramstring)>=2:
+        params=sys.argv[2]
+        cleanedparams=params.replace('?','')
+        if (params[len(params)-1]=='/'):
+            params=params[0:len(params)-2]
+        pairsofparams=cleanedparams.split('&')
+        param={}
+        for i in range(len(pairsofparams)):
+            splitparams={}
+            splitparams=pairsofparams[i].split('=')
+            if (len(splitparams))==2:
+                param[splitparams[0]]=splitparams[1]
+
+    return param
+
+def showDialogBox(message):
+    xbmcgui.Dialog().ok('message',message)
+
+def getRemoteData(url, postData):
+
+    headers = { 'User-Agent' : USER_AGENT }
+    postData['key'] = API_KEY
+    req = urllib2.Request(url, urllib.urlencode(postData), headers)
+    html = urllib2.urlopen(req).read()
+
+    return html
+
+
+def Latest():
+
+    item = xbmcgui.ListItem('Serial1')
+    sys_url = sys.argv[0] + '?mode=test'
+    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
+
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+
+
+#@route(PREFIX + "/en")
+def SelectFromEnglishNames():
+    items = []
+    if is_key_active():
+
+        abc = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+               'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Z']
+
+        for letter in abc:
+
+            item = xbmcgui.ListItem(letter)
+            sys_url = sys.argv[0] + '?mode=get_serial_list_by_title&letter='+letter
+            itemData = (sys_url,item, True)
+            items.append(itemData)
+    else:
+        display_missing_key_message()
+    xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+def SelectFromRussianNames():
+    items = []
+    if is_key_active():
+
+        abc = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Э', 'Ю', 'Я']
+
+        for letter in abc:
+
+            item = xbmcgui.ListItem(letter)
+            sys_url = sys.argv[0] + '?mode=get_serial_list_by_title&letter='+letter
+            itemData = (sys_url,item, True)
+            items.append(itemData)
+    else:
+        display_missing_key_message()
+    xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+#@handler(PREFIX, NAME, art=ART, thumb=ICON_DEFAULT)
+def MainMenu():
+    item = xbmcgui.ListItem('Select from russian names')
+    sys_url = sys.argv[0] + '?mode=select_from_russian_names'
+    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
+
+    item = xbmcgui.ListItem('Select from english names')
+    sys_url = sys.argv[0] + '?mode=select_from_english_names'
+    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
+
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+
+######################################################################################
+# List serial by selected letter
+######################################################################################
+
+
+#@route(PREFIX + "/get_serial_list_by_title")
+def get_serial_list_by_title(title):
+    if is_key_active():
+        values = {'key': API_KEY, 'command': 'getSerialList', 'letter': urllib.unquote(title)}
+
+        # do http request for search data
+        response = getRemoteData(API_URL, values)
+        response = json.loads(response)
+        if is_authorized(response):
+
+            if isinstance(response, dict) and 'error' in response.values():
+                showDialogBox(
+                    EMPTY_RESULT_MESSAGE
+                )
+            else:
+                for serial in response:
+                    total = serial.get('count_of_seasons')
+                    serial_title = serial.get('name')
+                    serial_thumb = serial.get('poster')
+                    serial_summary = serial.get('description')
+                    serial_country = serial.get('country')
+                    if total:
+                        item = xbmcgui.ListItem(serial_title+' [Seasons: '+total+']')
+                        item.setIconImage(serial_thumb)
+                        sys_url = sys.argv[0] + '?mode=get_season_list_by_title&title='+serial_title
+                        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
+
+                    else:
+                        # there are no seasons
+                        item = xbmcgui.ListItem(serial_title)
+                        item.setIconImage(serial_thumb)
+                        sys_url = sys.argv[0] + '?mode=get_season_by_id&id='+serial.get('last_season_id')
+                        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
+        else:
+            return display_unauthorized_message()
+    else:
+        return display_missing_key_message()
+
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+
+#@route(PREFIX + "/get_season_list_by_title")
+def get_season_list_by_title(title):
+    if is_key_active():
+        values = {
+            'command': 'getSeasonList',
+            'name': urllib.unquote(title)
+        }
+
+        response = getRemoteData(API_URL, values)
+        response = json.loads(response)
+
+        if is_authorized(response):
+
+            if isinstance(response, dict) and 'error' in response.values():
+                showDialogBox(
+                    EMPTY_RESULT_MESSAGE
+                )
+            else:
+                items = []
+                for season in response:
+                    season_id = season.get('id')
+                    season_number = season.get('season_number')
+                    item = xbmcgui.ListItem('Season '+season_number)
+                    item.setIconImage(season.get('poster'))
+                    sys_url = sys.argv[0] + '?mode=get_season_by_id&id='+season_id
+                    itemData = (sys_url, item, True)
+                    items.append(itemData)
+
+                xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
+
+        else:
+            return display_unauthorized_message()
+    else:
+        return display_missing_key_message()
+
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+
+#@route(PREFIX + "/get_season_by_id")
+def get_season_by_id(id):
+    if is_key_active():
+        values = {
+            'command': 'getSeason',
+            'season_id': id
+        }
+
+        response = getRemoteData(API_URL, values)
+        response = json.loads(response)
+
+        if is_authorized(response):
+
+            playlist = response.get('playlist')
+            items = []
+            for video in playlist:
+                video_name = video.get('name')
+                try:
+                    perevod = video.get('perevod')
+                    video_name = video_name + ' [Translation: '+perevod+']'
+                except:
+                    pass
+                video_link = video.get('link')
+                item = xbmcgui.ListItem(video_name)
+                item.setProperty('IsPlayable', 'true')
+                #video_link = video_link.replace('7f_','hd_')
+                #video_link = re.sub(r'data[0-9]*\-[a-zA-Z]*\.datalock\.ru','data-hd.datalock.ru',video_link)
+                #xbmc.log(video_link)
+                itemData = (video_link, item, False)
+                items.append(itemData)
+            xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
+        else:
+            return display_unauthorized_message()
+    else:
+        return display_missing_key_message()
+
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+
+
+######################################################################################
+#  Utilities
+######################################################################################
+
+# get average rating for the tv show
+def averageRating(ratings):
+    result = 0.0
+
+    if ratings:
+        for rater in ratings.iterkeys():
+            ratio = float(ratings.get(rater).get('ratio'))
+            result += ratio
+
+        result = result / len(list(ratings.iterkeys()))
+
+    return result
+
+
+def is_key_active():
+    if API_KEY != '':
+        return True
+
+    return False
+
+
+def is_authorized(response):
+    if 'error' in response:
+        if (response.get('error') == 'Authentication::getUser::wrong key'):
+            return False
+    return True
+
+
+def display_unauthorized_message():
+    xbmcgui.Dialog().ok(UNAUTHORIZED_TITLE, UNAUTHORIZED_MESSAGE)
+
+
+def display_missing_key_message():
+    xbmcgui.Dialog().ok(MISSING_API_KEY_TITLE, MISSING_API_KEY_MESSAGE)
+
+params = get_params()
+if len(params) == 0:
+    MainMenu()
+elif params['mode'] == 'latest':
+    Latest()
+elif params['mode'] == 'select_from_english_names':
+    SelectFromEnglishNames()
+elif params['mode'] == 'select_from_russian_names':
+    SelectFromRussianNames()
+elif params['mode'] == 'get_serial_list_by_title':
+    get_serial_list_by_title(params['letter'])
+elif params['mode'] == 'get_series_list_by_title':
+    get_serial_list_by_title(params['title'])
+elif params['mode'] == 'get_season_list_by_title':
+    get_season_list_by_title(params['title'])
+elif params['mode'] == 'get_season_by_id':
+    get_season_by_id(params['id'])
+elif params['mode'] == 'search':
+    search()
+else:
+    MainMenu()

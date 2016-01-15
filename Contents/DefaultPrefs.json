@@ -1,8 +1,0 @@
-[
-  {
-    "id": "key",
-    "label": "API Key",
-    "type": "text",
-    "default": ""
-  }
-]
