@@ -92,6 +92,7 @@ PLUGIN_HANDLE = int(sys.argv[1])
 ADDON = xbmcaddon.Addon(id='plugin.video.seasonvar.ru')
 xbmcplugin.setContent(int(sys.argv[1]), 'movies')
 API_KEY = ADDON.getSetting('API_KEY')
+USE_HD = ADDON.getSetting('USE_HD')
 #icon = xbmc.translatePath(os.path.join(Addon.getAddonInfo('path'),'icon.png'))
 
 def get_params():
@@ -252,7 +253,7 @@ def get_season_list_by_title(title):
                 for season in response:
                     season_id = season.get('id')
                     season_number = season.get('season_number')
-                    item = xbmcgui.ListItem('Season '+season_number)
+                    item = xbmcgui.ListItem(season.get('name')+' Season '+season_number)
                     item.setIconImage(season.get('poster'))
                     sys_url = sys.argv[0] + '?mode=get_season_by_id&id='+season_id
                     itemData = (sys_url, item, True)
@@ -293,8 +294,9 @@ def get_season_by_id(id):
                 video_link = video.get('link')
                 item = xbmcgui.ListItem(video_name)
                 item.setProperty('IsPlayable', 'true')
-                #video_link = video_link.replace('7f_','hd_')
-                #video_link = re.sub(r'data[0-9]*\-[a-zA-Z]*\.datalock\.ru','data-hd.datalock.ru',video_link)
+                if USE_HD == 'true':
+                    video_link = video_link.replace('7f_','hd_')
+                    video_link = re.sub(r'data[0-9]*\-[a-zA-Z]*\.datalock\.ru','data-hd.datalock.ru',video_link)
                 #xbmc.log(video_link)
                 itemData = (video_link, item, False)
                 items.append(itemData)
