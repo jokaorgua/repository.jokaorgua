@@ -92,7 +92,7 @@ def get_serial_list_by_title(title):
 
             if isinstance(response, dict) and 'error' in response.values():
                 showDialogBox(
-                    EMPTY_RESULT_MESSAGE
+                    STRING(30108)
                 )
             else:
                 for serial in response:
@@ -136,7 +136,7 @@ def get_season_list_by_title(title):
 
             if isinstance(response, dict) and 'error' in response.values():
                 showDialogBox(
-                    EMPTY_RESULT_MESSAGE
+                    STRING(30108)
                 )
             else:
                 items = []

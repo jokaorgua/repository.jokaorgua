@@ -59,5 +59,9 @@ msgid "Error"
 msgstr "Ошибка"
 
 msgctxt "#30107"
-msgid "Отсутствует API ключ. Пожалуйста добавьте его в меню настроек"
-msgstr ""
+msgid "Missing API key. Please add it in Settings menu"
+msgstr "Отсутствует API ключ. Пожалуйста добавьте его в меню настроек"
+
+msgctxt "#30108"
+msgid "No results"
+msgstr "Нет результатов"

@@ -62,3 +62,7 @@ msgctxt "#30107"
 msgid "Missing API key. Please add it in Settings menu"
 msgstr ""
 
+msgctxt "#30108"
+msgid "No results"
+msgstr ""
+
