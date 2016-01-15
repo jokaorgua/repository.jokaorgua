@@ -9,10 +9,12 @@ import urllib2
 import urllib
 import xbmc
 import re
+from utils import get_params, getRemoteData, remoteFileExists
+
 
 API_URL = "http://api.seasonvar.ru/"
 PREFIX = "/video/seasonvarserials"
-USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36';
+
 
 PLUGIN_HANDLE = int(sys.argv[1])
 ####################################################################################################
@@ -23,61 +25,10 @@ xbmcplugin.setContent(int(sys.argv[1]), 'movies')
 API_KEY = ADDON.getSetting('API_KEY')
 USE_HD = ADDON.getSetting('USE_HD')
 STRING = ADDON.getLocalizedString
-#icon = xbmc.translatePath(os.path.join(Addon.getAddonInfo('path'),'icon.png'))
-
-def get_params():
-    param=[]
-    paramstring=sys.argv[2]
-    if len(paramstring)>=2:
-        params=sys.argv[2]
-        cleanedparams=params.replace('?','')
-        if (params[len(params)-1]=='/'):
-            params=params[0:len(params)-2]
-        pairsofparams=cleanedparams.split('&')
-        param={}
-        for i in range(len(pairsofparams)):
-            splitparams={}
-            splitparams=pairsofparams[i].split('=')
-            if (len(splitparams))==2:
-                param[splitparams[0]]=splitparams[1]
-
-    return param
 
 def showDialogBox(message):
     xbmcgui.Dialog().ok('message',message)
 
-class HeadRequest(urllib2.Request):
-     def get_method(self):
-         return "HEAD"
-
-def getRemoteData(url, postData):
-
-    headers = { 'User-Agent' : USER_AGENT }
-    postData['key'] = API_KEY
-    req = urllib2.Request(url, urllib.urlencode(postData), headers)
-    html = urllib2.urlopen(req).read()
-
-    return html
-
-def remoteFileExists(url):
-    ret = urllib2.urlopen(HeadRequest(url))
-    xmbc.log('remoteFileExists ' + str(ret))
-    if ret.code == 200:
-        return True
-
-    return False
-
-def Latest():
-
-    item = xbmcgui.ListItem('Serial1')
-    sys_url = sys.argv[0] + '?mode=test'
-    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
-
-    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-
-
-
-#@route(PREFIX + "/en")
 def SelectFromEnglishNames():
     items = []
     if is_key_active():
@@ -113,7 +64,6 @@ def SelectFromRussianNames():
     xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
-#@handler(PREFIX, NAME, art=ART, thumb=ICON_DEFAULT)
 def MainMenu():
     item = xbmcgui.ListItem(STRING(30100))
     sys_url = sys.argv[0] + '?mode=select_from_russian_names'
@@ -131,7 +81,6 @@ def MainMenu():
 ######################################################################################
 
 
-#@route(PREFIX + "/get_serial_list_by_title")
 def get_serial_list_by_title(title):
     if is_key_active():
         values = {'key': API_KEY, 'command': 'getSerialList', 'letter': urllib.unquote(title)}
@@ -172,12 +121,12 @@ def get_serial_list_by_title(title):
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 
-#@route(PREFIX + "/get_season_list_by_title")
 def get_season_list_by_title(title):
     if is_key_active():
         values = {
             'command': 'getSeasonList',
-            'name': urllib.unquote(title)
+            'name': urllib.unquote(title),
+            'key': API_KEY
         }
 
         response = getRemoteData(API_URL, values)
@@ -210,12 +159,12 @@ def get_season_list_by_title(title):
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 
-#@route(PREFIX + "/get_season_by_id")
 def get_season_by_id(id):
     if is_key_active():
         values = {
             'command': 'getSeason',
-            'season_id': id
+            'season_id': id,
+            'key': API_KEY
         }
 
         response = getRemoteData(API_URL, values)
@@ -255,26 +204,6 @@ def get_season_by_id(id):
 
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
-
-
-######################################################################################
-#  Utilities
-######################################################################################
-
-# get average rating for the tv show
-def averageRating(ratings):
-    result = 0.0
-
-    if ratings:
-        for rater in ratings.iterkeys():
-            ratio = float(ratings.get(rater).get('ratio'))
-            result += ratio
-
-        result = result / len(list(ratings.iterkeys()))
-
-    return result
-
-
 def is_key_active():
     if API_KEY != '':
         return True
@@ -299,21 +228,15 @@ def display_missing_key_message():
 params = get_params()
 if len(params) == 0:
     MainMenu()
-elif params['mode'] == 'latest':
-    Latest()
 elif params['mode'] == 'select_from_english_names':
     SelectFromEnglishNames()
 elif params['mode'] == 'select_from_russian_names':
     SelectFromRussianNames()
 elif params['mode'] == 'get_serial_list_by_title':
     get_serial_list_by_title(params['letter'])
-elif params['mode'] == 'get_series_list_by_title':
-    get_serial_list_by_title(params['title'])
 elif params['mode'] == 'get_season_list_by_title':
     get_season_list_by_title(params['title'])
 elif params['mode'] == 'get_season_by_id':
     get_season_by_id(params['id'])
-elif params['mode'] == 'search':
-    search()
 else:
     MainMenu()
