@@ -61,6 +61,7 @@ def getRemoteData(url, postData):
 
 def remoteFileExists(url):
     ret = urllib2.urlopen(HeadRequest(url))
+    xmbc.log('remoteFileExists ' + str(ret))
     if ret.code == 200:
         return True
 
@@ -232,17 +233,18 @@ def get_season_by_id(id):
                 except:
                     pass
                 video_link = video.get('link')
+                xbmc.log(video_link)
                 item = xbmcgui.ListItem(video_name)
                 item.setProperty('IsPlayable', 'true')
                 try:
                     if USE_HD == 'true':
                         video_link_hd = video_link.replace('7f_','hd_')
                         video_link_hd = re.sub(r'data[0-9]*\-[a-zA-Z]*\.datalock\.ru','data-hd.datalock.ru',video_link_hd)
-                        if remoteFileExists(video_link):
+                        if remoteFileExists(video_link_hd):
                             video_link = video_link_hd
                 except:
                     pass
-                #xbmc.log(video_link)
+                xbmc.log(video_link)
                 itemData = (video_link, item, False)
                 items.append(itemData)
             xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
