@@ -16,16 +16,37 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgctxt "#32001"
+msgctxt "#30001"
 msgid "General"
 msgstr ""
 
-msgctxt "#32002"
+msgctxt "#30002"
 msgid "API key"
 msgstr ""
 
 #empty string with id 32003
 
-msgctxt "#32003"
+msgctxt "#30003"
 msgid "Use HD"
 msgstr ""
+
+msgctxt "#30100"
+msgid "Select from russian names"
+msgstr ""
+
+msgctxt "#30101"
+msgid "Select from english names"
+msgstr ""
+
+msgctxt "#30102"
+msgid "Seasons"
+msgstr ""
+
+msgctxt "#30103"
+msgid "Season"
+msgstr ""
+
+msgctxt "#30104"
+msgid "Translation"
+msgstr ""
+

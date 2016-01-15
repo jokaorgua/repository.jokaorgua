@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-    <category label="32001">
-        <setting label="32011" type="text"   id="API_KEY" default="ENTER YOUR API KEY"/>
-        <setting label="32011" type="bool"   id="USE_HD" default="false"/>
+    <category label="30001">
+        <setting label="30002" type="text"   id="API_KEY" default="ENTER YOUR API KEY"/>
+        <setting label="30003" type="bool"   id="USE_HD" default="false"/>
     </category>
 </settings>
