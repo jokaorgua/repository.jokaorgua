@@ -13,77 +13,6 @@ import re
 API_URL = "http://api.seasonvar.ru/"
 PREFIX = "/video/seasonvarserials"
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36';
-TIMEOUT = 30
-
-def L(key):
-
-    data = {
-        "Title": "Seasonvar.RU",
-        "ListSerials": "List Serials",
-        "LatestSerials": "Latest Serials",
-        "SeasonTitle": "Season",
-        "ABCSelect_EN": "English",
-        "ABCSelect_RU": "Russian",
-        "MissingAPIKeyTitle": "Error",
-        "MissingAPIKeyMessage": "Missing API Key. Open Settings and input a valid key. Next goto website and activate your key.",
-        "Search": "Search",
-        "SearchPrompt": "Search for the serial?",
-        "EmptyResultTitle": "Empty result",
-        "EmptyResultMessage": "Nothing has been found. Please try again",
-        "AddBookmarkTitle": "Add to bookmark list.",
-        "AddBookmarkMessage": " can be added to you bookmarks to make it easier to find later.",
-        "BookmarkList": "Bookmark List",
-        "BookmarkListAddedMessage": "This show has been added to your bookmarks",
-        "BookmarkListClearTitle": "Clear ALL",
-        "BookmarkListClearMessage": "CAUTION! This will clear your entire bookmark list!",
-        "BookmarkListClearedMessage": "Your bookmark list has been cleared.",
-        "UnauthorizedTitle": "Access Denied",
-        "UnauthorizedMessage": "Unauthorized user"
-    }
-    if data.has_key(key):
-        return data[key]
-
-    return key
-
-NAME = L('Title')
-LATEST_SERIALS = L('LatestSerials')
-LIST_SERIALS = L('ListSerials')
-SEASON_TITLE = L('SeasonTitle')
-ABC_SELECT_EN = L('ABCSelect_EN')
-ABC_SELECT_RU = L('ABCSelect_RU')
-SEARCH = L('Search')
-SEARCH_PROMPT = L('SearchPrompt')
-EMPTY_RESULT_TITLE = L('EmptyResultTitle')
-EMPTY_RESULT_MESSAGE = L('EmptyResultMessage')
-
-ADD_BOOKMARK_TITLE = L('AddBookmarkTitle')
-ADD_BOOKMARK_MESSAGE = L('AddBookmarkMessage')
-
-BOOKMARK = L('BookmarkList')
-BOOKMARK_ADDED_MESSAGE = L('BookmarkListAddedMessage')
-BOOKMARK_CLEAR_TITLE = L('BookmarkListClearTitle')
-BOOKMARK_CLEAR_MESSAGE = L('BookmarkListClearMessage')
-BOOKMARK_CLEARED_MESSAGE = L('BookmarkListClearedMessage')
-
-CLEAR_BOOKMARK = L('ClearBookmark')
-
-MISSING_API_KEY_TITLE = L('MissingAPIKeyTitle')
-MISSING_API_KEY_MESSAGE = L('MissingAPIKeyMessage')
-UNAUTHORIZED_TITLE = L('UnauthorizedTitle')
-UNAUTHORIZED_MESSAGE = L('UnauthorizedMessage')
-
-ART = 'art-default.jpg'
-
-ICON_DEFAULT = 'icon-default.png'
-ICON_RESUME = 'icon-resume.png'
-ICON_LATEST = 'icon-latest.png'
-ICON_COVER = 'icon-cover'
-ICON_SEARCH = 'icon-search.png'
-ICON_RU = 'icon-ru.png'
-ICON_EN = 'icon-en.png'
-ICON_BOOKMARKS = 'icon-bookmark.png'
-ICON_ADD_BOOKMARK = 'icon-bookmark.png'
-ICON_BOOKMARKS_CLEAR = 'icon-clear.png'
 
 PLUGIN_HANDLE = int(sys.argv[1])
 ####################################################################################################
@@ -93,6 +22,7 @@ ADDON = xbmcaddon.Addon(id='plugin.video.seasonvar.ru')
 xbmcplugin.setContent(int(sys.argv[1]), 'movies')
 API_KEY = ADDON.getSetting('API_KEY')
 USE_HD = ADDON.getSetting('USE_HD')
+STRING = ADDON.getLocalizedString
 #icon = xbmc.translatePath(os.path.join(Addon.getAddonInfo('path'),'icon.png'))
 
 def get_params():
@@ -116,6 +46,10 @@ def get_params():
 def showDialogBox(message):
     xbmcgui.Dialog().ok('message',message)
 
+class HeadRequest(urllib2.Request):
+     def get_method(self):
+         return "HEAD"
+
 def getRemoteData(url, postData):
 
     headers = { 'User-Agent' : USER_AGENT }
@@ -125,6 +59,12 @@ def getRemoteData(url, postData):
 
     return html
 
+def remoteFileExists(url):
+    ret = urllib2.urlopen(HeadRequest(url))
+    if ret.code == 200:
+        return True
+
+    return False
 
 def Latest():
 
@@ -174,11 +114,11 @@ def SelectFromRussianNames():
 
 #@handler(PREFIX, NAME, art=ART, thumb=ICON_DEFAULT)
 def MainMenu():
-    item = xbmcgui.ListItem('Select from russian names')
+    item = xbmcgui.ListItem(STRING(30100))
     sys_url = sys.argv[0] + '?mode=select_from_russian_names'
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
 
-    item = xbmcgui.ListItem('Select from english names')
+    item = xbmcgui.ListItem(STRING(30101))
     sys_url = sys.argv[0] + '?mode=select_from_english_names'
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
 
@@ -212,7 +152,7 @@ def get_serial_list_by_title(title):
                     serial_summary = serial.get('description')
                     serial_country = serial.get('country')
                     if total:
-                        item = xbmcgui.ListItem(serial_title+' [Seasons: '+total+']')
+                        item = xbmcgui.ListItem(serial_title+' ['+STRING(30102)+': '+total+']')
                         item.setIconImage(serial_thumb)
                         sys_url = sys.argv[0] + '?mode=get_season_list_by_title&title='+serial_title
                         xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
@@ -253,7 +193,7 @@ def get_season_list_by_title(title):
                 for season in response:
                     season_id = season.get('id')
                     season_number = season.get('season_number')
-                    item = xbmcgui.ListItem(season.get('name')+' Season '+season_number)
+                    item = xbmcgui.ListItem(season.get('name')+' '+STRING(30103)+' '+season_number)
                     item.setIconImage(season.get('poster'))
                     sys_url = sys.argv[0] + '?mode=get_season_by_id&id='+season_id
                     itemData = (sys_url, item, True)
@@ -288,15 +228,20 @@ def get_season_by_id(id):
                 video_name = video.get('name')
                 try:
                     perevod = video.get('perevod')
-                    video_name = video_name + ' [Translation: '+perevod+']'
+                    video_name = video_name + ' ['+STRING(30104)+': '+perevod+']'
                 except:
                     pass
                 video_link = video.get('link')
                 item = xbmcgui.ListItem(video_name)
                 item.setProperty('IsPlayable', 'true')
-                if USE_HD == 'true':
-                    video_link = video_link.replace('7f_','hd_')
-                    video_link = re.sub(r'data[0-9]*\-[a-zA-Z]*\.datalock\.ru','data-hd.datalock.ru',video_link)
+                try:
+                    if USE_HD == 'true':
+                        video_link_hd = video_link.replace('7f_','hd_')
+                        video_link_hd = re.sub(r'data[0-9]*\-[a-zA-Z]*\.datalock\.ru','data-hd.datalock.ru',video_link_hd)
+                        if remoteFileExists(video_link):
+                            video_link = video_link_hd
+                except:
+                    pass
                 #xbmc.log(video_link)
                 itemData = (video_link, item, False)
                 items.append(itemData)
@@ -343,11 +288,11 @@ def is_authorized(response):
 
 
 def display_unauthorized_message():
-    xbmcgui.Dialog().ok(UNAUTHORIZED_TITLE, UNAUTHORIZED_MESSAGE)
+    xbmcgui.Dialog().ok(STRING(30106), STRING(30105))
 
 
 def display_missing_key_message():
-    xbmcgui.Dialog().ok(MISSING_API_KEY_TITLE, MISSING_API_KEY_MESSAGE)
+    xbmcgui.Dialog().ok(STRING(30106), STRING(30107))
 
 params = get_params()
 if len(params) == 0:

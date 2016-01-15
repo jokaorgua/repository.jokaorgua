@@ -50,3 +50,14 @@ msgctxt "#30104"
 msgid "Translation"
 msgstr "Перевод"
 
+msgctxt "#30105"
+msgid "Unauthorized user"
+msgstr "Неавторизованный пользователь"
+
+msgctxt "#30106"
+msgid "Error"
+msgstr "Ошибка"
+
+msgctxt "#30107"
+msgid "Отсутствует API ключ. Пожалуйста добавьте его в меню настроек"
+msgstr ""

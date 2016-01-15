@@ -50,3 +50,15 @@ msgctxt "#30104"
 msgid "Translation"
 msgstr ""
 
+msgctxt "#30105"
+msgid "Unauthorized user"
+msgstr ""
+
+msgctxt "#30106"
+msgid "Error"
+msgstr ""
+
+msgctxt "#30107"
+msgid "Missing API key. Please add it in Settings menu"
+msgstr ""
+
