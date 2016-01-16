@@ -20,11 +20,16 @@ PLUGIN_HANDLE = int(sys.argv[1])
 ####################################################################################################
 # Start and main menu
 ####################################################################################################
-ADDON = xbmcaddon.Addon(id='plugin.video.seasonvar.ru')
+ADDON = xbmcaddon.Addon(id='plugin.video.seasonvar.ru.standalone')
 xbmcplugin.setContent(int(sys.argv[1]), 'movies')
 API_KEY = ADDON.getSetting('API_KEY')
 USE_HD = ADDON.getSetting('USE_HD')
+IS_DEBUG = ADDON.getSetting('IS_DEBUG')
 STRING = ADDON.getLocalizedString
+
+def LOG(message):
+    if IS_DEBUG == 'true':
+        xbmc.log('Seasonvar.ru.standalone: '+str(message))
 
 def showDialogBox(message):
     xbmcgui.Dialog().ok('message',message)
@@ -182,18 +187,20 @@ def get_season_by_id(id):
                 except:
                     pass
                 video_link = video.get('link')
-                xbmc.log(video_link)
                 item = xbmcgui.ListItem(video_name)
                 item.setProperty('IsPlayable', 'true')
+                LOG('video link from json '+video_link)
                 try:
                     if USE_HD == 'true':
+                        LOG('USE_HD is enabled')
                         video_link_hd = video_link.replace('7f_','hd_')
                         video_link_hd = re.sub(r'data[0-9]*\-[a-zA-Z]*\.datalock\.ru','data-hd.datalock.ru',video_link_hd)
+                        LOG('video link converted to HD '+video_link_hd)
                         if remoteFileExists(video_link_hd):
                             video_link = video_link_hd
                 except:
-                    pass
-                xbmc.log(video_link)
+                    LOG('Problem in converting video link to HD '+str(sys.exc_info()))
+                LOG('result video link for menu '+video_link)
                 itemData = (video_link, item, False)
                 items.append(itemData)
             xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
