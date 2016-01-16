@@ -13,25 +13,20 @@ from utils import get_params, getRemoteData, remoteFileExists
 
 
 API_URL = "http://api.seasonvar.ru/"
-PREFIX = "/video/seasonvarserials"
-
-
 PLUGIN_HANDLE = int(sys.argv[1])
-####################################################################################################
-# Start and main menu
-####################################################################################################
 ADDON = xbmcaddon.Addon(id='plugin.video.seasonvar.ru.standalone')
 xbmcplugin.setContent(int(sys.argv[1]), 'movies')
 API_KEY = ADDON.getSetting('API_KEY')
 USE_HD = ADDON.getSetting('USE_HD')
 IS_DEBUG = ADDON.getSetting('IS_DEBUG')
 STRING = ADDON.getLocalizedString
+PLUGIN_BASE_URL = sys.argv[0]
 
 def LOG(message):
     if IS_DEBUG == 'true':
         xbmc.log('Seasonvar.ru.standalone: '+str(message))
 
-def showDialogBox(message):
+def ShowDialogBox(message):
     xbmcgui.Dialog().ok('message',message)
 
 def ShowLettersMenu(isRussian=False):
@@ -43,23 +38,23 @@ def ShowLettersMenu(isRussian=False):
             abc = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Z']
 
         for letter in abc:
-
             item = xbmcgui.ListItem(letter)
-            sys_url = sys.argv[0] + '?mode=get_serial_list_by_title&letter='+letter
+            sys_url = PLUGIN_BASE_URL + '?mode=get_serial_list_by_title&letter=' + letter
             itemData = (sys_url,item, True)
             items.append(itemData)
     else:
         display_missing_key_message()
+
     xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 def MainMenu():
     item = xbmcgui.ListItem(STRING(30100))
-    sys_url = sys.argv[0] + '?mode=show_letters_menu_russian'
+    sys_url = PLUGIN_BASE_URL + '?mode=show_letters_menu_russian'
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
 
     item = xbmcgui.ListItem(STRING(30101))
-    sys_url = sys.argv[0] + '?mode=show_letters_menu_english'
+    sys_url = PLUGIN_BASE_URL + '?mode=show_letters_menu_english'
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
 
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
@@ -80,7 +75,7 @@ def get_serial_list_by_title(title):
         if is_authorized(response):
 
             if isinstance(response, dict) and 'error' in response.values():
-                showDialogBox(
+                ShowDialogBox(
                     STRING(30108)
                 )
             else:
@@ -91,11 +86,11 @@ def get_serial_list_by_title(title):
                     item = None
                     if seasonCount:
                         item = xbmcgui.ListItem(serial_title+' ['+STRING(30102)+': '+seasonCount+']')
-                        itemUrl = sys.argv[0] + '?mode=get_season_list_by_title&title='+serial_title
+                        itemUrl = PLUGIN_BASE_URL + '?mode=get_season_list_by_title&title=' + serial_title
                     else:
                         # there are no seasons
                         item = xbmcgui.ListItem(serial_title)
-                        itemUrl = sys.argv[0] + '?mode=get_season_by_id&id='+serial.get('last_season_id')
+                        itemUrl = PLUGIN_BASE_URL + '?mode=get_season_by_id&id=' + serial.get('last_season_id')
 
                     item.setIconImage(serial_thumb)
                     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, itemUrl, item, True)
@@ -121,7 +116,7 @@ def get_season_list_by_title(title):
         if is_authorized(response):
 
             if isinstance(response, dict) and 'error' in response.values():
-                showDialogBox(
+                ShowDialogBox(
                     STRING(30108)
                 )
             else:
@@ -131,8 +126,8 @@ def get_season_list_by_title(title):
                     season_number = season.get('season_number')
                     item = xbmcgui.ListItem(season.get('name')+' '+STRING(30103)+' '+season_number)
                     item.setIconImage(season.get('poster'))
-                    sys_url = sys.argv[0] + '?mode=get_season_by_id&id='+season_id
-                    itemData = (sys_url, item, True)
+                    itemUrl = PLUGIN_BASE_URL + '?mode=get_season_by_id&id=' + season_id
+                    itemData = (itemUrl, item, True)
                     items.append(itemData)
 
                 xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
