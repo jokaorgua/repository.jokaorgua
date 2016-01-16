@@ -85,23 +85,20 @@ def get_serial_list_by_title(title):
                 )
             else:
                 for serial in response:
-                    total = serial.get('count_of_seasons')
+                    seasonCount = serial.get('count_of_seasons')
                     serial_title = serial.get('name')
                     serial_thumb = serial.get('poster')
-                    serial_summary = serial.get('description')
-                    serial_country = serial.get('country')
-                    if total:
-                        item = xbmcgui.ListItem(serial_title+' ['+STRING(30102)+': '+total+']')
-                        item.setIconImage(serial_thumb)
-                        sys_url = sys.argv[0] + '?mode=get_season_list_by_title&title='+serial_title
-                        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
-
+                    item = None
+                    if seasonCount:
+                        item = xbmcgui.ListItem(serial_title+' ['+STRING(30102)+': '+seasonCount+']')
+                        itemUrl = sys.argv[0] + '?mode=get_season_list_by_title&title='+serial_title
                     else:
                         # there are no seasons
                         item = xbmcgui.ListItem(serial_title)
-                        item.setIconImage(serial_thumb)
-                        sys_url = sys.argv[0] + '?mode=get_season_by_id&id='+serial.get('last_season_id')
-                        xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
+                        itemUrl = sys.argv[0] + '?mode=get_season_by_id&id='+serial.get('last_season_id')
+
+                    item.setIconImage(serial_thumb)
+                    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, itemUrl, item, True)
         else:
             return display_unauthorized_message()
     else:
