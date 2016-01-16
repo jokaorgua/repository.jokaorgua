@@ -170,7 +170,7 @@ def get_season_by_id(id):
                     if USE_HD == 'true':
                         LOG('USE_HD is enabled')
                         video_link_hd = video_link.replace('7f_','hd_')
-                        video_link_hd = re.sub(r'data[0-9]*\-[a-zA-Z]*\.datalock\.ru','data-hd.datalock.ru',video_link_hd)
+                        video_link_hd = re.sub(r'http:\/\/[^.]+\.datalock\.ru','http://data-hd.datalock.ru',video_link_hd)
                         LOG('video link converted to HD '+video_link_hd)
                         if remoteFileExists(video_link_hd):
                             video_link = video_link_hd
