@@ -34,29 +34,13 @@ def LOG(message):
 def showDialogBox(message):
     xbmcgui.Dialog().ok('message',message)
 
-def SelectFromEnglishNames():
+def ShowLettersMenu(isRussian=False):
     items = []
     if is_key_active():
-
-        abc = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-               'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Z']
-
-        for letter in abc:
-
-            item = xbmcgui.ListItem(letter)
-            sys_url = sys.argv[0] + '?mode=get_serial_list_by_title&letter='+letter
-            itemData = (sys_url,item, True)
-            items.append(itemData)
-    else:
-        display_missing_key_message()
-    xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
-    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
-
-def SelectFromRussianNames():
-    items = []
-    if is_key_active():
-
-        abc = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Э', 'Ю', 'Я']
+        if isRussian:
+            abc = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Э', 'Ю', 'Я']
+        else:
+            abc = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Z']
 
         for letter in abc:
 
@@ -71,11 +55,11 @@ def SelectFromRussianNames():
 
 def MainMenu():
     item = xbmcgui.ListItem(STRING(30100))
-    sys_url = sys.argv[0] + '?mode=select_from_russian_names'
+    sys_url = sys.argv[0] + '?mode=show_letters_menu_russian'
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
 
     item = xbmcgui.ListItem(STRING(30101))
-    sys_url = sys.argv[0] + '?mode=select_from_english_names'
+    sys_url = sys.argv[0] + '?mode=show_letters_menu_english'
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
 
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
@@ -235,10 +219,10 @@ def display_missing_key_message():
 params = get_params()
 if len(params) == 0:
     MainMenu()
-elif params['mode'] == 'select_from_english_names':
-    SelectFromEnglishNames()
-elif params['mode'] == 'select_from_russian_names':
-    SelectFromRussianNames()
+elif params['mode'] == 'show_letters_menu_russian':
+    ShowLettersMenu(isRussian=True)
+elif params['mode'] == 'show_letters_menu_english':
+    ShowLettersMenu(isRussian=False)
 elif params['mode'] == 'get_serial_list_by_title':
     get_serial_list_by_title(params['letter'])
 elif params['mode'] == 'get_season_list_by_title':
