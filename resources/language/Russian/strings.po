@@ -70,4 +70,8 @@ msgctxt "#30108"
 msgid "No results"
 msgstr "Нет результатов"
 
+msgctxt "#30109"
+msgid "Favorites"
+msgstr "Избранное"
+
 

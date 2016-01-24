@@ -31,7 +31,7 @@ def ShowDialogBox(message):
 
 def ShowLettersMenu(isRussian=False):
     items = []
-    if is_key_active():
+    if isKeyActive():
         if isRussian:
             abc = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Э', 'Ю', 'Я']
         else:
@@ -43,36 +43,42 @@ def ShowLettersMenu(isRussian=False):
             itemData = (sys_url,item, True)
             items.append(itemData)
     else:
-        display_missing_key_message()
+        displayMissingKeyMessage()
 
     xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 def MainMenu():
     item = xbmcgui.ListItem(STRING(30100))
-    sys_url = PLUGIN_BASE_URL + '?mode=show_letters_menu_russian'
-    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
+    menuUrl = PLUGIN_BASE_URL + '?mode=show_letters_menu_russian'
+    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, menuUrl, item, True)
 
     item = xbmcgui.ListItem(STRING(30101))
-    sys_url = PLUGIN_BASE_URL + '?mode=show_letters_menu_english'
-    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, sys_url, item, True)
+    menuUrl = PLUGIN_BASE_URL + '?mode=show_letters_menu_english'
+    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, menuUrl, item, True)
+
+    item = xbmcgui.ListItem(STRING(30109))
+    menuUrl = PLUGIN_BASE_URL + '?mode=show_favorites_menu'
+    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, menuUrl, item, True)
 
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 
+def ShowFavoritesMenu():
+    pass
 ######################################################################################
 # List serial by selected letter
 ######################################################################################
 
 
-def get_serial_list_by_title(title):
-    if is_key_active():
+def getSerialListByTitle(title):
+    if isKeyActive():
         values = {'key': API_KEY, 'command': 'getSerialList', 'letter': urllib.unquote(title)}
 
         # do http request for search data
         response = getRemoteData(API_URL, values)
         response = json.loads(response)
-        if is_authorized(response):
+        if isAuthorized(response):
 
             if isinstance(response, dict) and 'error' in response.values():
                 ShowDialogBox(
@@ -95,15 +101,15 @@ def get_serial_list_by_title(title):
                     item.setIconImage(serial_thumb)
                     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, itemUrl, item, True)
         else:
-            return display_unauthorized_message()
+            return displayUnauthorizedMessage()
     else:
-        return display_missing_key_message()
+        return displayMissingKeyMessage()
 
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 
-def get_season_list_by_title(title):
-    if is_key_active():
+def getSeasonListByTitle(title):
+    if isKeyActive():
         values = {
             'command': 'getSeasonList',
             'name': urllib.unquote(title),
@@ -113,7 +119,7 @@ def get_season_list_by_title(title):
         response = getRemoteData(API_URL, values)
         response = json.loads(response)
 
-        if is_authorized(response):
+        if isAuthorized(response):
 
             if isinstance(response, dict) and 'error' in response.values():
                 ShowDialogBox(
@@ -133,15 +139,15 @@ def get_season_list_by_title(title):
                 xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
 
         else:
-            return display_unauthorized_message()
+            return displayUnauthorizedMessage()
     else:
-        return display_missing_key_message()
+        return displayMissingKeyMessage()
 
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 
 def get_season_by_id(id):
-    if is_key_active():
+    if isKeyActive():
         values = {
             'command': 'getSeason',
             'season_id': id,
@@ -151,7 +157,7 @@ def get_season_by_id(id):
         response = getRemoteData(API_URL, values)
         response = json.loads(response)
 
-        if is_authorized(response):
+        if isAuthorized(response):
 
             playlist = response.get('playlist')
             items = []
@@ -181,31 +187,31 @@ def get_season_by_id(id):
                 items.append(itemData)
             xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
         else:
-            return display_unauthorized_message()
+            return displayUnauthorizedMessage()
     else:
-        return display_missing_key_message()
+        return displayMissingKeyMessage()
 
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
-def is_key_active():
+def isKeyActive():
     if API_KEY != '':
         return True
 
     return False
 
 
-def is_authorized(response):
+def isAuthorized(response):
     if 'error' in response:
         if (response.get('error') == 'Authentication::getUser::wrong key'):
             return False
     return True
 
 
-def display_unauthorized_message():
+def displayUnauthorizedMessage():
     xbmcgui.Dialog().ok(STRING(30106), STRING(30105))
 
 
-def display_missing_key_message():
+def displayMissingKeyMessage():
     xbmcgui.Dialog().ok(STRING(30106), STRING(30107))
 
 params = get_params()
@@ -216,10 +222,12 @@ elif params['mode'] == 'show_letters_menu_russian':
 elif params['mode'] == 'show_letters_menu_english':
     ShowLettersMenu(isRussian=False)
 elif params['mode'] == 'get_serial_list_by_title':
-    get_serial_list_by_title(params['letter'])
+    getSerialListByTitle(params['letter'])
 elif params['mode'] == 'get_season_list_by_title':
-    get_season_list_by_title(params['title'])
+    getSeasonListByTitle(params['title'])
 elif params['mode'] == 'get_season_by_id':
     get_season_by_id(params['id'])
+elif params['mode'] == 'show_favorites_menu':
+    ShowFavoritesMenu()
 else:
     MainMenu()
