@@ -74,4 +74,10 @@ msgctxt "#30109"
 msgid "Favorites"
 msgstr "Избранное"
 
+msgctxt "#30110"
+msgid "Favorites file does not exist"
+msgstr "Файл избранного не существует"
 
+msgctxt "#30111"
+msgid "Favorites file is too small"
+msgstr "Файл избранного слишком мал"

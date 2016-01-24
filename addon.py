@@ -11,16 +11,18 @@ import xbmc
 import re
 from utils import get_params, getRemoteData, remoteFileExists
 
-
+ADDONID = 'plugin.video.seasonvar.ru.standalone'
 API_URL = "http://api.seasonvar.ru/"
 PLUGIN_HANDLE = int(sys.argv[1])
-ADDON = xbmcaddon.Addon(id='plugin.video.seasonvar.ru.standalone')
+ADDON = xbmcaddon.Addon(id=ADDONID)
+ADDONFILEPATH    = xbmc.translatePath( ADDON.getAddonInfo('profile') )
 xbmcplugin.setContent(int(sys.argv[1]), 'movies')
 API_KEY = ADDON.getSetting('API_KEY')
 USE_HD = ADDON.getSetting('USE_HD')
 IS_DEBUG = ADDON.getSetting('IS_DEBUG')
 STRING = ADDON.getLocalizedString
 PLUGIN_BASE_URL = sys.argv[0]
+FAVORITES_FILEPATH = ADDONFILEPATH+'/'+ADDONID+'_favorites.json'
 
 def LOG(message):
     if IS_DEBUG == 'true':
@@ -49,6 +51,15 @@ def ShowLettersMenu(isRussian=False):
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 def MainMenu():
+    if not os.path.exists(FAVORITES_FILEPATH) or not os.path.isfile(FAVORITES_FILEPATH):
+        try:
+            with open(FAVORITES_FILEPATH,'a') as f:
+                f.close()
+        except:
+            LOG(sys.exc_info())
+            ShowDialogBox('Can not create favorites file. WTF???')
+            return
+
     item = xbmcgui.ListItem(STRING(30100))
     menuUrl = PLUGIN_BASE_URL + '?mode=show_letters_menu_russian'
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, menuUrl, item, True)
@@ -65,6 +76,21 @@ def MainMenu():
 
 
 def ShowFavoritesMenu():
+    if not os.path.exists(FAVORITES_FILEPATH) or not os.path.isfile(FAVORITES_FILEPATH):
+        LOG('Favorites file does not exist. '+FAVORITES_FILEPATH)
+        ShowDialogBox(STRING(30110))
+    data = open(FAVORITES_FILEPATH).readall()
+    if len(data) < 2:
+        LOG('Favorites data file too small. '+data)
+        ShowDialogBox(STRING(30111))
+        return
+    try:
+        favoritesData = json.loads(data)
+    except:
+        LOG('Can not load json data from favorites file '+data)
+        ShowDialogBox(STRING(30106))
+        return
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
     pass
 ######################################################################################
 # List serial by selected letter
