@@ -54,6 +54,7 @@ def MainMenu():
     if not os.path.exists(FAVORITES_FILEPATH) or not os.path.isfile(FAVORITES_FILEPATH):
         try:
             with open(FAVORITES_FILEPATH,'a') as f:
+                f.write('{}')
                 f.close()
         except:
             LOG(sys.exc_info())
@@ -61,10 +62,6 @@ def MainMenu():
             return
 
     item = xbmcgui.ListItem(STRING(30100))
-    #commands = []
-    #commands.append(( 'runme', 'XBMC.RunPlugin(plugin://video/myplugin)', ))
-    #commands.append(( 'runother', 'XBMC.RunPlugin(plugin://video/otherplugin)', ))
-    #item.addContextMenuItems( commands )
     menuUrl = PLUGIN_BASE_URL + '?mode=show_letters_menu_russian'
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, menuUrl, item, True)
 
@@ -76,7 +73,87 @@ def MainMenu():
     menuUrl = PLUGIN_BASE_URL + '?mode=show_favorites_menu'
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, menuUrl, item, True)
 
+    item = xbmcgui.ListItem(STRING(30115))
+    menuUrl = PLUGIN_BASE_URL + '?mode=updates'
+    xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, menuUrl, item, True)
+
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+def Updates():
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+def AddToFavorites(title):
+    favoritesData = {}
+    fp = None
+    try:
+        fpRead = open(FAVORITES_FILEPATH)
+
+        favoritesData = json.load(fpRead)
+    except:
+        LOG('Can not load json data from favorites file')
+        ShowDialogBox(STRING(30106))
+        return
+    if favoritesData.has_key(unicode(title,'utf-8')):
+        ShowDialogBox(STRING(30113))
+        return
+    favoritesData[title] = getFullSerialData(title)
+    fpRead.close()
+    fpWrite = open(FAVORITES_FILEPATH,'w')
+    json.dump(favoritesData,fpWrite)
+
+    fpWrite.close()
+    return
+
+def RemoveFromFavorites(title):
+    favoritesData = {}
+    fp = None
+    try:
+        fpRead = open(FAVORITES_FILEPATH)
+
+        favoritesData = json.load(fpRead)
+    except:
+        LOG('Can not load json data from favorites file')
+        ShowDialogBox(STRING(30106))
+        return
+    del favoritesData[unicode(title,'utf-8')]
+    fpRead.close()
+    fpWrite = open(FAVORITES_FILEPATH,'w')
+    json.dump(favoritesData,fpWrite)
+
+    fpWrite.close()
+    ShowFavoritesMenu()
+
+def getFullSerialData(title):
+    serialData = {}
+    if isKeyActive():
+        values = {
+            'command': 'getSeasonList',
+            'name': urllib.unquote(title),
+            'key': API_KEY
+        }
+
+        response = getRemoteData(API_URL, values)
+        response = json.loads(response)
+
+        if isAuthorized(response):
+
+            if isinstance(response, dict) and 'error' in response.values():
+                ShowDialogBox(
+                    STRING(30108)
+                )
+            else:
+                serialData['seasons'] = {}
+                for season in response:
+                    season_id = season.get('id')
+                    season_number = season.get('season_number')
+                    serialData['seasons'][season_id] = getSeasonSeriesById(season_id)
+
+            return serialData
+
+        else:
+            return displayUnauthorizedMessage()
+    else:
+        return displayMissingKeyMessage()
 
 
 def ShowFavoritesMenu():
@@ -84,6 +161,7 @@ def ShowFavoritesMenu():
         LOG('Favorites file does not exist. '+FAVORITES_FILEPATH)
         ShowDialogBox(STRING(30110))
     data = open(FAVORITES_FILEPATH).read()
+    LOG(data)
     if len(data) < 2:
         LOG('Favorites data file too small. '+data)
         ShowDialogBox(STRING(30111))
@@ -94,6 +172,19 @@ def ShowFavoritesMenu():
         LOG('Can not load json data from favorites file '+data)
         ShowDialogBox(STRING(30106))
         return
+    items = []
+    for data in favoritesData.keys():
+        item = xbmcgui.ListItem(data)
+        if len(favoritesData[data]['seasons'].keys()) > 1:
+            itemUrl = PLUGIN_BASE_URL + '?mode=get_season_list_by_title&title='+data
+        else:
+            itemUrl = PLUGIN_BASE_URL + '?mode=get_season_by_id&id='+favoritesData[data]['seasons'].keys()[0]
+        commands = []
+        commands.append(( STRING(30114), 'XBMC.RunPlugin('+PLUGIN_BASE_URL + '?mode=remove_from_favorites&title=' + data+')', ))
+        item.addContextMenuItems( commands, True )
+        itemData = (itemUrl,item,True)
+        items.append(itemData)
+    xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
     pass
 ######################################################################################
@@ -120,6 +211,7 @@ def getSerialListByTitle(title):
                     serial_title = serial.get('name')
                     serial_thumb = serial.get('poster')
                     item = None
+
                     if seasonCount:
                         item = xbmcgui.ListItem(serial_title+' ['+STRING(30102)+': '+seasonCount+']')
                         itemUrl = PLUGIN_BASE_URL + '?mode=get_season_list_by_title&title=' + serial_title
@@ -129,6 +221,9 @@ def getSerialListByTitle(title):
                         itemUrl = PLUGIN_BASE_URL + '?mode=get_season_by_id&id=' + serial.get('last_season_id')
 
                     item.setIconImage(serial_thumb)
+                    commands = []
+                    commands.append(( STRING(30112), 'XBMC.RunPlugin('+PLUGIN_BASE_URL + '?mode=add_to_favorites&title=' + serial_title+')', ))
+                    item.addContextMenuItems( commands, True )
                     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, itemUrl, item, True)
         else:
             return displayUnauthorizedMessage()
@@ -174,6 +269,52 @@ def getSeasonListByTitle(title):
         return displayMissingKeyMessage()
 
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+
+def getSeasonSeriesById(id):
+    seasonData = {}
+    if isKeyActive():
+        values = {
+            'command': 'getSeason',
+            'season_id': id,
+            'key': API_KEY
+        }
+
+        response = getRemoteData(API_URL, values)
+        response = json.loads(response)
+
+        if isAuthorized(response):
+
+            playlist = response.get('playlist')
+            seasonData['series'] = {}
+            i = 1
+            for video in playlist:
+                video_name = video.get('name')
+                video_link = video.get('link')
+                #TODO: remove this hack!!
+                if video_name.find('13') > -1:
+                    continue
+                seasonData['series'][i] = {}
+                seasonData['series'][i]['name'] = video_name
+                try:
+                    if USE_HD == 'true':
+                        LOG('USE_HD is enabled')
+                        video_link_hd = video_link.replace('7f_','hd_')
+                        video_link_hd = re.sub(r'http:\/\/[^.]+\.datalock\.ru','http://data-hd.datalock.ru',video_link_hd)
+                        LOG('video link converted to HD '+video_link_hd)
+                        if remoteFileExists(video_link_hd):
+                            video_link = video_link_hd
+                except:
+                    LOG('Problem in converting video link to HD '+str(sys.exc_info()))
+                seasonData['series'][i]['link'] = video_link
+                i += 1
+
+            return seasonData
+
+        else:
+            return displayUnauthorizedMessage()
+    else:
+        return displayMissingKeyMessage()
 
 
 def get_season_by_id(id):
@@ -259,5 +400,11 @@ elif params['mode'] == 'get_season_by_id':
     get_season_by_id(params['id'])
 elif params['mode'] == 'show_favorites_menu':
     ShowFavoritesMenu()
+elif params['mode'] == 'add_to_favorites':
+    AddToFavorites(params['title'])
+elif params['mode'] == 'remove_from_favorites':
+    RemoveFromFavorites(params['title'])
+elif params['mode'] == 'updates':
+    Updates()
 else:
     MainMenu()

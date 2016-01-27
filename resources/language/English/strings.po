@@ -80,6 +80,22 @@ msgstr ""
 
 msgctxt "#30111"
 msgid "Favorites file is too small"
-msgstr "Файл избранного слишком мал"
+msgstr ""
+
+msgctxt "#30112"
+msgid "Add to Favorites"
+msgstr ""
+
+msgctxt "#30113"
+msgid "Already in Favorites"
+msgstr ""
+
+msgctxt "#30114"
+msgid "Remove from Favorites"
+msgstr ""
+
+msgctxt "#30115"
+msgid "Updates"
+msgstr ""
 
 

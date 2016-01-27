@@ -81,3 +81,19 @@ msgstr "Файл избранного не существует"
 msgctxt "#30111"
 msgid "Favorites file is too small"
 msgstr "Файл избранного слишком мал"
+
+msgctxt "#30112"
+msgid "Add to Favorites"
+msgstr "Добавить в Избранное"
+
+msgctxt "#30113"
+msgid "Already in Favorites"
+msgstr "Уже в Избранном"
+
+msgctxt "#30114"
+msgid "Remove from Favorites"
+msgstr "Удалить из Избранного"
+
+msgctxt "#30115"
+msgid "Updates"
+msgstr "Обновления"
