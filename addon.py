@@ -57,10 +57,14 @@ def MainMenu():
                 f.close()
         except:
             LOG(sys.exc_info())
-            ShowDialogBox('Can not create favorites file. WTF???')
+            ShowDialogBox('Can not create favorites file. WTF??? ' + FAVORITES_FILEPATH)
             return
 
     item = xbmcgui.ListItem(STRING(30100))
+    #commands = []
+    #commands.append(( 'runme', 'XBMC.RunPlugin(plugin://video/myplugin)', ))
+    #commands.append(( 'runother', 'XBMC.RunPlugin(plugin://video/otherplugin)', ))
+    #item.addContextMenuItems( commands )
     menuUrl = PLUGIN_BASE_URL + '?mode=show_letters_menu_russian'
     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, menuUrl, item, True)
 
@@ -79,7 +83,7 @@ def ShowFavoritesMenu():
     if not os.path.exists(FAVORITES_FILEPATH) or not os.path.isfile(FAVORITES_FILEPATH):
         LOG('Favorites file does not exist. '+FAVORITES_FILEPATH)
         ShowDialogBox(STRING(30110))
-    data = open(FAVORITES_FILEPATH).readall()
+    data = open(FAVORITES_FILEPATH).read()
     if len(data) < 2:
         LOG('Favorites data file too small. '+data)
         ShowDialogBox(STRING(30111))
