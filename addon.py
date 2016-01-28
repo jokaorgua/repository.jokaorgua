@@ -109,6 +109,15 @@ def Updates():
 def PlayLink(url, serial_title):
     serial_title = urllib.unquote(serial_title)
     url = urllib.unquote(url)
+    try:
+        if USE_HD == 'true':
+            video_link_hd = url.replace('7f_','hd_')
+            video_link_hd = re.sub(r'http:\/\/[^.]+\.datalock\.ru','http://data-hd.datalock.ru',video_link_hd)
+            LOG('video link converted to HD '+video_link_hd)
+            if remoteFileExists(video_link_hd):
+                url = video_link_hd
+    except:
+        LOG('Problem in converting video link to HD '+str(sys.exc_info()))
     listItem = xbmcgui.ListItem("PlayLink", path=url)
     RemoveFromFavorites(serial_title)
     AddToFavorites(serial_title)
@@ -324,19 +333,11 @@ def getSeasonSeriesById(id):
             i = 1
             for video in playlist:
                 video_name = video.get('name')
+
                 video_link = video.get('link')
                 seasonData['series'][i] = {}
                 seasonData['series'][i]['name'] = video_name
-                try:
-                    if USE_HD == 'true':
-                        LOG('USE_HD is enabled')
-                        video_link_hd = video_link.replace('7f_','hd_')
-                        video_link_hd = re.sub(r'http:\/\/[^.]+\.datalock\.ru','http://data-hd.datalock.ru',video_link_hd)
-                        LOG('video link converted to HD '+video_link_hd)
-                        if remoteFileExists(video_link_hd):
-                            video_link = video_link_hd
-                except:
-                    LOG('Problem in converting video link to HD '+str(sys.exc_info()))
+
                 seasonData['series'][i]['link'] = video_link
                 i += 1
 
