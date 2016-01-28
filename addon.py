@@ -80,9 +80,42 @@ def MainMenu():
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 def Updates():
+    favoritesData = {}
+    fp = None
+    try:
+        fpRead = open(FAVORITES_FILEPATH)
+
+        favoritesData = json.load(fpRead)
+    except:
+        LOG('Can not load json data from favorites file')
+        ShowDialogBox(STRING(30106))
+        return
+    items = []
+
+    for serial_title in favoritesData.keys():
+        serial_data = getFullSerialData(serial_title.encode('utf-8'))
+        for season_id in serial_data['seasons'].keys():
+            for part in serial_data['seasons'][season_id]['series'].keys():
+                try:
+                    a = favoritesData[serial_title]['seasons'][unicode(str(season_id),'utf-8')][u'series'][unicode(str(part),'utf-8')]
+                except:
+                    item = xbmcgui.ListItem(serial_title+" "+serial_data['seasons'][season_id][u'series'][part]['name'])
+                    video_link = PLUGIN_BASE_URL + "?mode=playlink&serial_title="+urllib.quote(serial_title.encode('utf-8'))+"&url="+urllib.quote(serial_data['seasons'][season_id]['series'][part]['link'])
+                    itemData = (video_link, item, False)
+                    items.append(itemData)
+    xbmcplugin.addDirectoryItems(PLUGIN_HANDLE, items)
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
+def PlayLink(url, serial_title):
+    serial_title = urllib.unquote(serial_title)
+    url = urllib.unquote(url)
+    listItem = xbmcgui.ListItem("PlayLink", path=url)
+    RemoveFromFavorites(serial_title)
+    AddToFavorites(serial_title)
+    xbmc.Player().play(item=url, listitem=listItem)
+
 def AddToFavorites(title):
+    title = urllib.unquote(title)
     favoritesData = {}
     fp = None
     try:
@@ -105,6 +138,7 @@ def AddToFavorites(title):
     return
 
 def RemoveFromFavorites(title):
+    title = urllib.unquote(title)
     favoritesData = {}
     fp = None
     try:
@@ -180,7 +214,7 @@ def ShowFavoritesMenu():
         else:
             itemUrl = PLUGIN_BASE_URL + '?mode=get_season_by_id&id='+favoritesData[data]['seasons'].keys()[0]
         commands = []
-        commands.append(( STRING(30114), 'XBMC.RunPlugin('+PLUGIN_BASE_URL + '?mode=remove_from_favorites&title=' + data+')', ))
+        commands.append(( STRING(30114), 'XBMC.RunPlugin('+PLUGIN_BASE_URL + '?mode=remove_from_favorites&title=' + urllib.quote(data.encode('utf-8'))+')', ))
         item.addContextMenuItems( commands, True )
         itemData = (itemUrl,item,True)
         items.append(itemData)
@@ -222,7 +256,7 @@ def getSerialListByTitle(title):
 
                     item.setIconImage(serial_thumb)
                     commands = []
-                    commands.append(( STRING(30112), 'XBMC.RunPlugin('+PLUGIN_BASE_URL + '?mode=add_to_favorites&title=' + serial_title+')', ))
+                    commands.append(( STRING(30112), 'XBMC.RunPlugin('+PLUGIN_BASE_URL + '?mode=add_to_favorites&title=' + urllib.quote(serial_title.encode('utf-8'))+')', ))
                     item.addContextMenuItems( commands, True )
                     xbmcplugin.addDirectoryItem(PLUGIN_HANDLE, itemUrl, item, True)
         else:
@@ -291,9 +325,6 @@ def getSeasonSeriesById(id):
             for video in playlist:
                 video_name = video.get('name')
                 video_link = video.get('link')
-                #TODO: remove this hack!!
-                if video_name.find('13') > -1:
-                    continue
                 seasonData['series'][i] = {}
                 seasonData['series'][i]['name'] = video_name
                 try:
@@ -406,5 +437,7 @@ elif params['mode'] == 'remove_from_favorites':
     RemoveFromFavorites(params['title'])
 elif params['mode'] == 'updates':
     Updates()
+elif params['mode'] == 'playlink':
+    PlayLink(params['url'], params['serial_title'])
 else:
     MainMenu()
