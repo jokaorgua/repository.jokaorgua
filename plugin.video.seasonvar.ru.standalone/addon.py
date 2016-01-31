@@ -99,7 +99,7 @@ def Updates():
                 try:
                     a = favoritesData[serial_title]['seasons'][unicode(str(season_id),'utf-8')][u'series'][unicode(str(part),'utf-8')]
                 except:
-                    item = xbmcgui.ListItem(serial_title+" "+serial_data['seasons'][season_id][u'series'][part]['name'])
+                    item = xbmcgui.ListItem(serial_title+" "+' ['+STRING(30103)+' '+serial_data['seasons'][season_id][u'series'][part]['season_number']+"] "+serial_data['seasons'][season_id][u'series'][part]['name']+" "+ ' ['+STRING(30104)+': '+serial_data['seasons'][season_id][u'series'][part]['perevod']+']')
                     video_link = PLUGIN_BASE_URL + "?mode=playlink&serial_title="+urllib.quote(serial_title.encode('utf-8'))+"&url="+urllib.quote(serial_data['seasons'][season_id]['series'][part]['link'])
                     itemData = (video_link, item, False)
                     items.append(itemData)
@@ -329,16 +329,18 @@ def getSeasonSeriesById(id):
         if isAuthorized(response):
 
             playlist = response.get('playlist')
+            season_number = response.get('season_number')
             seasonData['series'] = {}
             i = 1
             for video in playlist:
                 video_name = video.get('name')
-
                 video_link = video.get('link')
+                perevod = video.get('perevod')
                 seasonData['series'][i] = {}
                 seasonData['series'][i]['name'] = video_name
-
+                seasonData['series'][i]['perevod'] = perevod
                 seasonData['series'][i]['link'] = video_link
+                seasonData['series'][i]['season_number'] = season_number
                 i += 1
 
             return seasonData
