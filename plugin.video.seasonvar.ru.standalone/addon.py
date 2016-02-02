@@ -97,9 +97,9 @@ def Updates():
         for season_id in serial_data['seasons'].keys():
             for part in serial_data['seasons'][season_id]['series'].keys():
                 try:
-                    a = favoritesData[serial_title]['seasons'][unicode(str(season_id),'utf-8')][u'series'][unicode(str(part),'utf-8')]
+                    a = favoritesData[serial_title]['seasons'][unicode(str(season_id),'utf-8')]['series'][unicode(str(part),'utf-8')]
                 except:
-                    item = xbmcgui.ListItem(serial_title+" "+' ['+STRING(30103)+' '+serial_data['seasons'][season_id][u'series'][part]['season_number']+"] "+serial_data['seasons'][season_id][u'series'][part]['name']+" "+ ' ['+STRING(30104)+': '+serial_data['seasons'][season_id][u'series'][part]['perevod']+']')
+                    item = xbmcgui.ListItem(serial_title+" "+' ['+STRING(30103)+' '+serial_data['seasons'][season_id]['series'][part]['season_number']+"] "+serial_data['seasons'][season_id]['series'][part]['name']+" "+ ' ['+STRING(30104)+': '+serial_data['seasons'][season_id]['series'][part]['perevod']+']')
                     video_link = PLUGIN_BASE_URL + "?mode=playlink&serial_title="+urllib.quote(serial_title.encode('utf-8'))+"&url="+urllib.quote(serial_data['seasons'][season_id]['series'][part]['link'])
                     itemData = (video_link, item, False)
                     items.append(itemData)
@@ -338,7 +338,10 @@ def getSeasonSeriesById(id):
                 perevod = video.get('perevod')
                 seasonData['series'][i] = {}
                 seasonData['series'][i]['name'] = video_name
-                seasonData['series'][i]['perevod'] = perevod
+                if perevod == None:
+                    seasonData['series'][i]['perevod'] = ''
+                else:
+                    seasonData['series'][i]['perevod'] = perevod
                 seasonData['series'][i]['link'] = video_link
                 seasonData['series'][i]['season_number'] = season_number
                 i += 1
