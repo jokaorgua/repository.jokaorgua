@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.seasonvar.ru.standalone" name="Seasonvar.ru" version="0.1.2" provider-name="DmytroKovalenko">
+<addon id="plugin.video.seasonvar.ru.standalone" name="Seasonvar.ru" version="0.1.3" provider-name="DmytroKovalenko">
   <requires>
     <import addon="xbmc.python" version="2.7.10"/>
   </requires>
