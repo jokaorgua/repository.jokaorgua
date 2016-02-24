@@ -20,6 +20,8 @@ xbmcplugin.setContent(int(sys.argv[1]), 'movies')
 API_KEY = ADDON.getSetting('API_KEY')
 USE_HD = ADDON.getSetting('USE_HD')
 IS_DEBUG = ADDON.getSetting('IS_DEBUG')
+exTranslation = ADDON.getSetting('EXCLUDED_TRANSLATION')
+EXCLUDED_TRANSLATION = exTranslation.split(',')
 STRING = ADDON.getLocalizedString
 PLUGIN_BASE_URL = sys.argv[0]
 FAVORITES_FILEPATH = ADDONFILEPATH+'/'+ADDONID+'_favorites.json'
@@ -99,6 +101,8 @@ def Updates():
                 try:
                     a = favoritesData[serial_title]['seasons'][unicode(str(season_id),'utf-8')]['series'][unicode(str(part),'utf-8')]
                 except:
+                    if isExcludedTranslation(serial_data['seasons'][season_id]['series'][part]['perevod']):
+                        continue
                     item = xbmcgui.ListItem(serial_title+" "+' ['+STRING(30103)+' '+serial_data['seasons'][season_id]['series'][part]['season_number']+"] "+serial_data['seasons'][season_id]['series'][part]['name']+" "+ ' ['+STRING(30104)+': '+serial_data['seasons'][season_id]['series'][part]['perevod']+']')
                     video_link = PLUGIN_BASE_URL + "?mode=playlink&serial_title="+urllib.quote(serial_title.encode('utf-8'))+"&url="+urllib.quote(serial_data['seasons'][season_id]['series'][part]['link'])
                     itemData = (video_link, item, False)
@@ -313,6 +317,10 @@ def getSeasonListByTitle(title):
 
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
+def isExcludedTranslation(translation):
+    if translation in [x.decode('string-escape').decode('utf-8') for x in EXCLUDED_TRANSLATION]:
+        return True
+    return False
 
 def getSeasonSeriesById(id):
     seasonData = {}

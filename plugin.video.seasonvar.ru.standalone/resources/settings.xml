@@ -4,5 +4,6 @@
         <setting label="30002" type="text"   id="API_KEY" default="ENTER YOUR API KEY"/>
         <setting label="30003" type="bool"   id="USE_HD" default="false"/>
         <setting label="30004" type="bool"   id="IS_DEBUG" default="false"/>
+        <setting label="30005" type="text"   id="EXCLUDED_TRANSLATION" default="ENTER VALUES DIVIDED BY COMMA"/>
     </category>
 </settings>

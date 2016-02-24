@@ -34,6 +34,10 @@ msgctxt "#30004"
 msgid "Write logs"
 msgstr ""
 
+msgctxt "#30005"
+msgid "Exclude translation"
+msgstr ""
+
 msgctxt "#30100"
 msgid "Select from russian names"
 msgstr ""
